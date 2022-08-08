@@ -52,7 +52,6 @@ build ()
 		  #hash grub efistub
 		  sha512sum "$EFISTUB" > $TMPDIR/efistub.sha512
 		  add_file $TMPDIR/efistub.sha512 /etc/chkcryptoboot
-		  add_file $TMPDIR/fstab /etc/fstab
 	      else
 		  error "Wrong EFISTUB configuration; exit"
 		  return 1
