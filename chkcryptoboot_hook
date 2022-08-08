@@ -44,9 +44,9 @@ check_core ()
 
 check_efi ()
 {
-    if [ -n "$ESP" -a -s /etc/chkcryptoboot/efistub.sha512 ]; then
-	resolve_device "$ESP"
-	mount $ESP
+    if [ -n "$ESP_DIR" -a -s /etc/chkcryptoboot/efistub.sha512 ]; then
+	resolve_device "$ESP_DIR"
+	mount $ESP_DEVICE $ESP_DIR
 	sha512sum -c /etc/chkcryptoboot/efistub.sha512
 	if [ $? -ne 0 ]; then
 	    echo -e "\nCHKCRYPTOBOOT ALERT!\n"
@@ -124,8 +124,8 @@ run_cleanuphook ()
     if [ -s /etc/chkcryptoboot/chkcryptoboot.conf ]; then
 	source /etc/chkcryptoboot/chkcryptoboot.conf
 	if [ $BOOTMODE = "efi" ]; then
-	    if [ -n $ESP ]; then
-		umount $ESP
+	    if [ -n $ESP_DIR ]; then
+		umount $ESP_DIR
 	    fi
 	fi
     fi
