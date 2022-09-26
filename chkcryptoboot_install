@@ -1,80 +1,81 @@
 #!/bin/bash
+
 build ()
 {
-  # Are we even needed?
-  if [ ! -s /etc/default/chkcryptoboot.conf ]; then
-      error "There is no chkcryptoboot configuration file; exit"
-      return 1
-  else
-      source /etc/default/chkcryptoboot.conf
-  fi
+	# Are we even needed?
+	if [ ! -s /etc/default/chkcryptoboot.conf ]; then
+		error "There is no chkcryptoboot configuration file; exit"
+		return 1
+	else
+		source /etc/default/chkcryptoboot.conf
+	fi
 
-  # if TMPDIR is set leave it alone otherwise set
-  [ -z $TMPDIR ] && TMPDIR='/tmp/mkinitcpio-chkcryptoboot'
+	# if TMPDIR is set leave it alone otherwise set
+	[ -z $TMPDIR ] && TMPDIR='/tmp/mkinitcpio-chkcryptoboot'
 
-  # check if TMPDIR exsists if not make it
-  [ -d $TMPDIR ] || mkdir -p $TMPDIR
+	# check if TMPDIR exsists if not make it
+	[ -d $TMPDIR ] || mkdir -p $TMPDIR
 
-  add_dir /etc/chkcryptoboot
+	add_dir /etc/chkcryptoboot
 
-  if [ -z $CMDLINE_NAME -o -z $CMDLINE_VALUE ]; then
-      error "You must configure the cmdline name/value pair; exit"
-      return 1
-  fi
+	if [ -z $CMDLINE_NAME -o -z $CMDLINE_VALUE ]; then
+		error "You must configure the cmdline name/value pair; exit"
+		return 1
+	fi
 
-  if [ -n "$BOOTMODE" ]; then
-      if [ $BOOTMODE = "mbr" ]; then
-	  if [ -n "$BOOTDISK" -a -b "$BOOTDISK" ]; then
-	      #only backup first 446 bytes of disk
-	      dd if=$BOOTDISK of=$TMPDIR/disk-head bs=446 count=1
-	      cd $TMPDIR
-	      sha512sum disk-head > $TMPDIR/disk-head.sha512
-	      add_file $TMPDIR/disk-head.sha512 /etc/chkcryptoboot
+	if [ -n "$BOOTMODE" ]; then
+		if [ $BOOTMODE = "mbr" ]; then
+			if [ -n "$BOOTDISK" -a -b "$BOOTDISK" ]; then
+				# only backup first 446 bytes of disk
+				dd if=$BOOTDISK of=$TMPDIR/disk-head bs=446 count=1
+				cd $TMPDIR
+				sha512sum disk-head > $TMPDIR/disk-head.sha512
+				add_file $TMPDIR/disk-head.sha512 /etc/chkcryptoboot
 
-	      if [ -n "$BOOT_PARTITION" -a -b "$BOOT_PARTITION" ]; then
-		  #read first 62 sectors from BIOS boot partition
-		  dd if=$BOOT_PARTITION of=$TMPDIR/grub-core bs=512 count=62
-	      else
-		  #read first 62 sectors from post-MBR gap
-		  dd if=$BOOTDISK of=$TMPDIR/grub-core skip=1 bs=512 count=62
-	      fi
-	      sha512sum grub-core > $TMPDIR/grub-core.sha512
-	      add_file $TMPDIR/grub-core.sha512 /etc/chkcryptoboot
-	  else
-	      error "No BOOTDISK configured; exit"
-	      return 1
-	  fi
-      elif [ $BOOTMODE = "efi" ]; then
-	  if [ -n "$ESP_DIR" ]; then
-	      if [ -n "$EFISTUB" -a -s "$EFISTUB" ]; then
-		  add_module "vfat"
-		  add_dir "$ESP_DIR"
-		  #hash grub efistub
-		  sha512sum "$EFISTUB" > $TMPDIR/efistub.sha512
-		  add_file $TMPDIR/efistub.sha512 /etc/chkcryptoboot
-	      else
-		  error "Wrong EFISTUB configuration; exit"
-		  return 1
-	      fi
-	  else
-	      error "No ESP mount point configured; exit"
-	      return 1
-	  fi
-      else
-	  error "Wrong BOOTMODE configured; exit"
-	  return 1
-      fi
-  else
-      error "NO BOOTMODE configured; exit"
-      return 1
-  fi
-  
-  add_binary /usr/bin/sha512sum
-  add_file /etc/default/chkcryptoboot.conf /etc/chkcryptoboot
+				if [ -n "$BOOT_PARTITION" -a -b "$BOOT_PARTITION" ]; then
+					# read first 62 sectors from BIOS boot partition
+					dd if=$BOOT_PARTITION of=$TMPDIR/grub-core bs=512 count=62
+				else
+					# read first 62 sectors from post-MBR gap
+					dd if=$BOOTDISK of=$TMPDIR/grub-core skip=1 bs=512 count=62
+				fi
+				sha512sum grub-core > $TMPDIR/grub-core.sha512
+				add_file $TMPDIR/grub-core.sha512 /etc/chkcryptoboot
+			else
+				error "No BOOTDISK configured; exit"
+				return 1
+			fi
+		elif [ $BOOTMODE = "efi" ]; then
+			if [ -n "$ESP_DIR" ]; then
+				if [ -n "$EFISTUB" -a -s "$EFISTUB" ]; then
+					add_module "vfat"
+					add_dir "$ESP_DIR"
+					# hash grub efistub
+					sha512sum "$EFISTUB" > $TMPDIR/efistub.sha512
+					add_file $TMPDIR/efistub.sha512 /etc/chkcryptoboot
+				else
+					error "Wrong EFISTUB configuration; exit"
+					return 1
+				fi
+			else
+				error "No ESP mount point configured; exit"
+				return 1
+			fi
+		else
+			error "Wrong BOOTMODE configured; exit"
+			return 1
+		fi
+	else
+		error "NO BOOTMODE configured; exit"
+		return 1
+	fi
 
-  add_runscript
-  
+	add_binary /usr/bin/sha512sum
+	add_file /etc/default/chkcryptoboot.conf /etc/chkcryptoboot
+
+	add_runscript
 }
+
 
 help ()
 {

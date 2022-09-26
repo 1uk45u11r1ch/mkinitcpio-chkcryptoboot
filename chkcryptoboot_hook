@@ -89,6 +89,8 @@ warning_confirm ()
 	done
 }
 
+
+
 run_hook ()
 {
 	if [ -s /etc/chkcryptoboot/chkcryptoboot.conf ]; then
