@@ -61,8 +61,8 @@ check_efi ()
 
 check_cmdline ()
 {
+	# check if the name/value pair was configured and is present in kernel cmdline
 	if [ -n "$CMDLINE_NAME" -a -n "$CMDLINE_VALUE" ]; then
-		# checks if the name value pair was configured and checks for them in the kernel's cmdline
 		for param in `cat /proc/cmdline` ; do
 			if [ $param = $CMDLINE_NAME=$CMDLINE_VALUE ]; then
 				echo "Your kernel cmdline contain the correct parameters."
