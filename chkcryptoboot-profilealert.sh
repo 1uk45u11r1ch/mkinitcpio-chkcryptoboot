@@ -8,7 +8,6 @@
 source /etc/default/chkcryptoboot.conf
 
 if [ -n "$CMDLINE_NAME" -a -n "$CMDLINE_VALUE" ]; then
-    #checks if the name value pair was configured and checks for them in the kernel's cmdline
     for param in `cat /proc/cmdline` ; do
 	if [ $param = $CMDLINE_NAME=$CMDLINE_VALUE ]; then
 	    return 0
@@ -16,8 +15,11 @@ if [ -n "$CMDLINE_NAME" -a -n "$CMDLINE_VALUE" ]; then
     done
 fi
 
-#will never hit if the check above succeeded.
-echo -e "CHKCRYPTOBOOT ALERT!\n"
-echo -e "You boot partition was probably bypassed!\n"
-echo "Please check your kernel cmdline and your chckcryptobook configuration!"
+printf "\n\n"
+printf "\033[0;31mCHKCRYPTOBOOT ALERT\033[0m"
+printf "\n"
+printf "\033[0;31mTHE KERNEL CMDLINE DO NOT CONTAIN THE PARAMETERS THAT ARE IN\033[0m\n"
+printf "\033[0;31mTHE CHKCRYPTOBOOT CONFIGURATION\033[0m\n"
+printf "\033[0;31mTHIS INDICATES THE BOOT LOADER CONFIGURATION WAS PROBABLY BYPASSED\033[0m\n"
+printf "\n"
 return 1
