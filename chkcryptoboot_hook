@@ -7,12 +7,17 @@ check_mbr ()
 		cd /etc/chkcryptoboot
 		sha512sum -c disk-head.sha512
 		if [ $? -ne 0 ]; then
-			echo -e "\nCHKCRYPTOBOOT ALERT!\n"
-			echo -e "CHANGES HAVE BEEN DETECTED IN THE BOOT LOADER CODE INSTALLED IN YOUR MBR!\n"
+			printf "\n\n"
+			printf "\033[0;31mCHKCRYPTOBOOT ALERT\033[0m"
+			printf "\n"
+			printf "\033[0;31mCHANGES HAVE BEEN DETECTED IN THE 1st STAGE BOOTLOADER CODE INSTALLED IN THE MBR\033[0m"
+			printf "\n"
 			cd -
 			return 1
 		else
-			echo "Your boot loader code mbr hash was verified successfully."
+			printf "\n"
+			printf "\033[0;32mOK:\033[0m verified bootloader 1st stage in MBR"
+			printf "\n"
 			cd -
 			return 0
 		fi
@@ -30,12 +35,17 @@ check_core ()
 		cd /etc/chkcryptoboot
 		sha512sum -c grub-core.sha512
 		if [ $? -ne 0 ]; then
-			echo -e "\nCHKCRYPTOBOOT ALERT!\n"
-			echo -e "CHANGES HAVE BEEN DETECTED IN THE BOOT LOADER CORE!\n"
+			printf "\n\n"
+			printf "\033[0;31mCHKCRYPTOBOOT ALERT\033[0m"
+			printf "\n"
+			printf "\033[0;31mCHANGES HAVE BEEN DETECTED IN THE BOOTLOADER CORE\033[0m"
+			printf "\n"
 			cd -
 			return 1
 		else
-			echo "Your boot loader core hash was verified successfully."
+			printf "\n"
+			printf "\033[0;32mOK:\033[0m verified bootloader core"
+			printf "\n"
 			cd -
 			return 0
 		fi
@@ -49,11 +59,16 @@ check_efi ()
 		mount $ESP_DEVICE $ESP_DIR
 		sha512sum -c /etc/chkcryptoboot/efistub.sha512
 		if [ $? -ne 0 ]; then
-			echo -e "\nCHKCRYPTOBOOT ALERT!\n"
-			echo -e "CHANGES HAVE BEEN DETECTED IN YOUR BOOT LOADER EFISTUB!\n"
+			printf "\n\n"
+			printf "\033[0;31mCHKCRYPTOBOOT ALERT\033[0m"
+			printf "\n"
+			printf "\033[0;31mCHANGES HAVE BEEN DETECTED IN THE BOOTLOADER EFISTUB\033[0m"
+			printf "\n"
 			return 1
 		else
-			echo "Your boot loader efistub hash was verified successfully."
+			printf "\n"
+			printf "\033[0;32mOK:\033[0m verified bootloader efistub\033[0m"
+			printf "\n"
 			return 0
 		fi
 	fi
@@ -65,23 +80,28 @@ check_cmdline ()
 	if [ -n "$CMDLINE_NAME" -a -n "$CMDLINE_VALUE" ]; then
 		for param in `cat /proc/cmdline` ; do
 			if [ $param = $CMDLINE_NAME=$CMDLINE_VALUE ]; then
-				echo "Your kernel cmdline contain the correct parameters."
+				printf "\n"
+				printf "\033[0;32mOK:\033[0m verified kernel cmdline parameters"
+				printf "\n"
 				return 0
 			fi
 		done
 	fi
-	echo -e "\nCHKCRYPTOBOOT ALERT!\n"
-	echo -e "YOUR KERNEL CMDLINE DO NOT CONTAIN THE PARAMETERS THAT ARE IN\n"
-	echo -e "THE CHKCRYPTOBOOT CONFIGURATION!\n"
-	echo -e "THIS INDICATES YOUR BOOT LOADER CONFIGURATION WAS PROBABLY BYPASSED!\n"
+	printf "\n\n"
+	printf "\033[0;31mCHKCRYPTOBOOT ALERT\033[0m"
+	printf "\n"
+	printf "\033[0;31mTHE KERNEL CMDLINE DO NOT CONTAIN THE PARAMETERS THAT ARE IN\033[0m\n"
+	printf "\033[0;31mTHE CHKCRYPTOBOOT CONFIGURATION\033[0m\n"
+	printf "\033[0;31mTHIS INDICATES THE BOOT LOADER CONFIGURATION WAS PROBABLY BYPASSED\033[0m\n"
 	return 1
 }
 
 warning_confirm ()
 {
 	while true; do
-		echo -e "YOU ARE STRONGLY ADVISED NOT TO ENTER YOUR ROOT CONTAINER PASSWORD!"
-		echo -e "\nPlease type uppercase yes to continue:"
+		printf "\033[0;31mYOU ARE STRONGLY ADVISED NOT TO ENTER YOUR ROOT CONTAINER PASSWORD\033[0m"
+		printf "\n\n"
+		printf "type uppercase yes to continue: "
 		read YES
 		if [ $YES = YES ]; then
 			break
@@ -112,8 +132,8 @@ run_hook ()
 				warning_confirm
 			fi
 		else
-			echo -e "\nCHKCRYPTOBOOT WARNING!\n"
-			echo -e "YOUR CHKCRYPTOBOOT CONFIGURATION CONTAIN ERRORS!"
+			printf "\n\033[0;33mWARNING:\033[0m the chkcryptoboot configuration contains errors"
+			printf "\n\n"
 			warning_confirm
 		fi
 	fi
