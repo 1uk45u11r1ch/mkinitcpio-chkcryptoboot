@@ -2,71 +2,72 @@
 
 build ()
 {
-	# Are we even needed?
 	if [ ! -s /etc/default/chkcryptoboot.conf ]; then
-		error "There is no chkcryptoboot configuration file; exit"
+		error "chkcryptoboot configuration file not found; exit"
 		return 1
 	else
 		source /etc/default/chkcryptoboot.conf
 	fi
 
-	# if TMPDIR is set leave it alone otherwise set
+	# if TMPDIR is not set
 	[ -z $TMPDIR ] && TMPDIR='/tmp/mkinitcpio-chkcryptoboot'
 
-	# check if TMPDIR exsists if not make it
+	# check if TMPDIR exsists if not create it
 	[ -d $TMPDIR ] || mkdir -p $TMPDIR
 
 	add_dir /etc/chkcryptoboot
 
 	if [ -z $CMDLINE_NAME -o -z $CMDLINE_VALUE ]; then
-		error "You must configure the cmdline name/value pair; exit"
+		error "kernel cmdline name/value pair not configured; exit"
 		return 1
 	fi
 
 	if [ -n "$BOOTMODE" ]; then
 		if [ $BOOTMODE = "mbr" ]; then
+			# BIOS boot
 			if [ -n "$BOOTDISK" -a -b "$BOOTDISK" ]; then
-				# only backup first 446 bytes of disk
+				# read first 446 bytes from bootdisk (1st stage bootloader)
 				dd if=$BOOTDISK of=$TMPDIR/disk-head bs=446 count=1
 				cd $TMPDIR
+				# hash 1st stage bootloader
 				sha512sum disk-head > $TMPDIR/disk-head.sha512
 				add_file $TMPDIR/disk-head.sha512 /etc/chkcryptoboot
-
 				if [ -n "$BOOT_PARTITION" -a -b "$BOOT_PARTITION" ]; then
-					# read first 62 sectors from BIOS boot partition
+					# read first 62 sectors from BIOS boot partition (BIOS/GPT boot)
 					dd if=$BOOT_PARTITION of=$TMPDIR/grub-core bs=512 count=62
 				else
-					# read first 62 sectors from post-MBR gap
+					# read first 62 sectors from post-MBR gap (BIOS/MBR boot)
 					dd if=$BOOTDISK of=$TMPDIR/grub-core skip=1 bs=512 count=62
 				fi
 				sha512sum grub-core > $TMPDIR/grub-core.sha512
 				add_file $TMPDIR/grub-core.sha512 /etc/chkcryptoboot
 			else
-				error "No BOOTDISK configured; exit"
+				error "invalid bootdisk configuration; exit"
 				return 1
 			fi
 		elif [ $BOOTMODE = "efi" ]; then
+			# EFI boot
 			if [ -n "$ESP_DIR" ]; then
 				if [ -n "$EFISTUB" -a -s "$EFISTUB" ]; then
 					add_module "vfat"
 					add_dir "$ESP_DIR"
-					# hash grub efistub
+					# hash efistub
 					sha512sum "$EFISTUB" > $TMPDIR/efistub.sha512
 					add_file $TMPDIR/efistub.sha512 /etc/chkcryptoboot
 				else
-					error "Wrong EFISTUB configuration; exit"
+					error "invalid EFISTUB configuration; exit"
 					return 1
 				fi
 			else
-				error "No ESP mount point configured; exit"
+				error "no ESP mount point configured; exit"
 				return 1
 			fi
 		else
-			error "Wrong BOOTMODE configured; exit"
+			error "invalid bootmode configured; exit"
 			return 1
 		fi
 	else
-		error "NO BOOTMODE configured; exit"
+		error "no bootmodeconfigured; exit"
 		return 1
 	fi
 
