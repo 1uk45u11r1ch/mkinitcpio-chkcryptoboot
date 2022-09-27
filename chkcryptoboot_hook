@@ -15,7 +15,6 @@ check_mbr ()
 			cd -
 			return 1
 		else
-			printf "\n"
 			printf "\033[0;32mOK:\033[0m verified bootloader 1st stage in MBR"
 			printf "\n"
 			cd -
@@ -43,7 +42,6 @@ check_core ()
 			cd -
 			return 1
 		else
-			printf "\n"
 			printf "\033[0;32mOK:\033[0m verified bootloader core"
 			printf "\n"
 			cd -
@@ -66,7 +64,6 @@ check_efi ()
 			printf "\n"
 			return 1
 		else
-			printf "\n"
 			printf "\033[0;32mOK:\033[0m verified bootloader efistub"
 			printf "\n"
 			return 0
@@ -79,7 +76,6 @@ check_cmdline ()
 	if [ -n "$CMDLINE_NAME" -a -n "$CMDLINE_VALUE" ]; then
 		for param in `cat /proc/cmdline` ; do
 			if [ $param = $CMDLINE_NAME=$CMDLINE_VALUE ]; then
-				printf "\n"
 				printf "\033[0;32mOK:\033[0m verified kernel cmdline parameters"
 				printf "\n"
 				return 0
