@@ -67,7 +67,7 @@ build ()
 			return 1
 		fi
 	else
-		error "no bootmodeconfigured; exit"
+		error "no bootmode configured; exit"
 		return 1
 	fi
 
