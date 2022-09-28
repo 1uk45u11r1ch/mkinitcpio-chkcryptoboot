@@ -53,8 +53,12 @@ check_core ()
 check_efi ()
 {
 	if [ -n "$ESP_DIR" -a -s /etc/chkcryptoboot/efistub.sha512 ]; then
-		resolve_device "$ESP_DIR"
-		mount $ESP_DEVICE $ESP_DIR
+		tries=0
+		while [ ! -b "$ESP_DEVICE" -a $tries -lt 10 ]; do 
+			tries=$((tries+1))
+			sleep 1
+		done
+		mount -t vfat $ESP_DEVICE $ESP_DIR
 		sha512sum -c /etc/chkcryptoboot/efistub.sha512
 		if [ $? -ne 0 ]; then
 			printf "\n\n"
